@@ -11,7 +11,7 @@ var User   = require('./app/models/User'); // get our mongoose model
 // =======================
 // configuration =========
 // =======================
-var port = 3311; // used to create, sign, and verify tokens
+var port = 3333; // used to create, sign, and verify tokens
 mongoose.connect(config.database); // connect to database
 app.set('superSecret', config.secret); // secret variable
 
