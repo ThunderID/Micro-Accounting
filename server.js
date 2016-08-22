@@ -10,13 +10,15 @@ var mongoose	= require('mongoose');
 var jwt			= require('jsonwebtoken'); // used to create, sign, and verify tokens
 var config		= require('./config'); // get our config file
 var Transaction	= require('./app/models/Transaction'); // get our mongoose model
+var amqp 		= require('amqplib/callback_api');
 var apiRoutes	= express.Router(); 
-	
+
 // =======================
 // configuration =========
 // =======================
-var port 		= 2222; // used to create, sign, and verify tokens
+var port 		= 2220; // used to create, sign, and verify tokens
 mongoose.connect(config.database); // connect to database
+
 app.set('superSecret', config.secret); // secret variable
 
 // use body parser so we can get info from POST and/or URL parameters
@@ -90,7 +92,7 @@ app.use('/api', apiRoutes);
 // =======================
 app.get('/setup', function(req, res) {
 
-	// create a sample user
+	// create a sample transaction
 	var tlab = new Transaction({ 
 		date: '2016-01-01', 
 		amount: '50000'
@@ -102,6 +104,34 @@ app.get('/setup', function(req, res) {
 
 		console.log('Transaction saved successfully');
 		res.json({ success: true });
+	});
+});
+
+// =======================
+// handling queue ========
+// =======================
+amqp.connect('amqp://localhost', function(err, conn) {
+	conn.createChannel(function(err, ch) {
+		var q 	= 'thunderpayment';
+
+		ch.assertQueue(q, {durable: false});
+
+		console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", q);
+		ch.consume(q, function(msg) {
+			var payment 	= msg.content;
+			console.log(" [x] Received %s", payment.toString());
+
+			// create a sample transaction
+			var tlab 	= new Transaction({ date: payment.date, amount: payment.amount});
+
+			// save the sample Transaction
+			tlab.save(function(err) {
+				if (err) throw err;
+
+				console.log('Transaction saved successfully');
+			});
+
+		}, {noAck: true});
 	});
 });
 
