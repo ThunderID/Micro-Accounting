@@ -5,11 +5,10 @@ var express		= require('express');
 var app			= express();
 var bodyParser	= require('body-parser');
 var morgan		= require('morgan');
-var mongoose	= require('mongoose');
 
 var jwt			= require('jsonwebtoken'); // used to create, sign, and verify tokens
 var config		= require('./config'); // get our config file
-var Transaction	= require('./app/models/Transaction'); // get our mongoose model
+// var Transaction	= require('./app/models/Transaction'); // get our mongoose model
 var amqp 		= require('amqplib/callback_api');
 var apiRoutes	= express.Router(); 
 
@@ -17,7 +16,8 @@ var apiRoutes	= express.Router();
 // configuration =========
 // =======================
 var port 		= 2220; // used to create, sign, and verify tokens
-mongoose.connect(config.database); // connect to database
+var Sequelize 	= require("sequelize");
+var sequelize 	= new Sequelize('postgres://postgres:thunder@localhost:5432/microaccount');
 
 app.set('superSecret', config.secret); // secret variable
 amqp.connect('amqp://localhost', function(err, conn) {}); //connect message broker
@@ -80,9 +80,18 @@ apiRoutes.get('/', function(req, res) {
 
 // route to return all transactions (GET http://localhost:2222/api/transactions)
 apiRoutes.get('/transactions', function(req, res) {
-  	Transaction.find({}, function(err, transactions) {
-	res.json(transactions);
-  });
+	var Transaction = sequelize.define('transaction', {
+						date: {
+							type: Sequelize.STRING,
+						},
+						amount: {
+							type: Sequelize.STRING,
+						},
+					}, { freezeTableName: true }); // Model tableName will be the same as the model name: true // Model tableName will be the same as the model name
+
+	Transaction.findAndCountAll().then(function (transactions) {
+	    res.json(transactions.rows);
+	});
 });   
 
 // apply the routes to our application with the prefix /api
@@ -93,18 +102,21 @@ app.use('/api', apiRoutes);
 // =======================
 app.get('/setup', function(req, res) {
 
-	// create a sample transaction
-	var tlab = new Transaction({ 
-		date: '2016-01-01', 
-		amount: '50000'
-	});
+	var Transaction = sequelize.define('transaction', {
+						date: {
+							type: Sequelize.STRING,
+						},
+						amount: {
+							type: Sequelize.STRING,
+						},
+					}, { freezeTableName: true }); // Model tableName will be the same as the model name: true // Model tableName will be the same as the model name
 
-	// save the sample Transaction
-	tlab.save(function(err) {
-		if (err) throw err;
-
-		console.log('Transaction saved successfully');
-		res.json({ success: true });
+	Transaction.sync({force: true}).then(function () {
+		// Table created
+		return Transaction.create({
+			date: '2016-01-01', 
+			amount: '50000'
+		});
 	});
 });
 
@@ -124,21 +136,30 @@ amqp.connect('amqp://localhost', function(err, conn) {
 			ch.consume(q.queue, function(msg) {
 				var payment	= JSON.parse(msg.content.toString());
 
-				var tlab 	= new Transaction({ date: payment.date, amount: payment.amount});
+				var Transaction = sequelize.define('transaction', {
+					date: {
+						type: Sequelize.STRING,
+					},
+					amount: {
+						type: Sequelize.STRING,
+					},
+				}, { freezeTableName: true }); // Model tableName will be the same as the model name: true // Model tableName will be the same as the model name
 
-				// save the sample Transaction
-				tlab.save(function(err) {
-					if (err) throw err;
-
-					console.log('Transaction saved successfully');
+				Transaction.sync({force: true}).then(function () {
+					// Table created
+					Transaction.create({
+						date: payment.date, 
+						amount: payment.amount
+					});
 				});
+
+				console.log('Transaction saved successfully');
 
 				console.log(" [x] %s", payment.amount);
 			}, {noAck: true});
 		});
 	});
 });
-
 
 
 // =======================
