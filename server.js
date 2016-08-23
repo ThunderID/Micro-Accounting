@@ -8,7 +8,6 @@ var morgan		= require('morgan');
 
 var jwt			= require('jsonwebtoken'); // used to create, sign, and verify tokens
 var config		= require('./config'); // get our config file
-// var Transaction	= require('./app/models/Transaction'); // get our mongoose model
 var amqp 		= require('amqplib/callback_api');
 var apiRoutes	= express.Router(); 
 
@@ -18,6 +17,14 @@ var apiRoutes	= express.Router();
 var port 		= 2220; // used to create, sign, and verify tokens
 var Sequelize 	= require("sequelize");
 var sequelize 	= new Sequelize('postgres://postgres:thunder@localhost:5432/microaccount');
+var Transaction = sequelize.define('transaction', {
+					date: {
+						type: Sequelize.STRING,
+					},
+					amount: {
+						type: Sequelize.STRING,
+					},
+				}, { freezeTableName: true }); // Model tableName will be the same as the model name: true // Model tableName will be the same as the model name
 
 app.set('superSecret', config.secret); // secret variable
 amqp.connect('amqp://localhost', function(err, conn) {}); //connect message broker
@@ -80,15 +87,6 @@ apiRoutes.get('/', function(req, res) {
 
 // route to return all transactions (GET http://localhost:2222/api/transactions)
 apiRoutes.get('/transactions', function(req, res) {
-	var Transaction = sequelize.define('transaction', {
-						date: {
-							type: Sequelize.STRING,
-						},
-						amount: {
-							type: Sequelize.STRING,
-						},
-					}, { freezeTableName: true }); // Model tableName will be the same as the model name: true // Model tableName will be the same as the model name
-
 	Transaction.findAndCountAll().then(function (transactions) {
 	    res.json(transactions.rows);
 	});
@@ -101,23 +99,16 @@ app.use('/api', apiRoutes);
 // initial transaction ===
 // =======================
 app.get('/setup', function(req, res) {
-
-	var Transaction = sequelize.define('transaction', {
-						date: {
-							type: Sequelize.STRING,
-						},
-						amount: {
-							type: Sequelize.STRING,
-						},
-					}, { freezeTableName: true }); // Model tableName will be the same as the model name: true // Model tableName will be the same as the model name
-
-	Transaction.sync({force: true}).then(function () {
-		// Table created
-		return Transaction.create({
-			date: '2016-01-01', 
-			amount: '50000'
+	Transaction
+		.build({ date: '2016-01-01', amount: '50000'})
+		.save()
+		.then(function(anotherTransaction) {
+		// you can now access the currently saved Transaction with the variable anotherTransaction... nice!
+			console.log('Transaction saved successfully');
+		}).catch(function(error) {
+		// Ooops, do some error-handling
+			console.log('Transaction not saved');
 		});
-	});
 });
 
 // =======================
@@ -136,24 +127,25 @@ amqp.connect('amqp://localhost', function(err, conn) {
 			ch.consume(q.queue, function(msg) {
 				var payment	= JSON.parse(msg.content.toString());
 
-				var Transaction = sequelize.define('transaction', {
-					date: {
-						type: Sequelize.STRING,
-					},
-					amount: {
-						type: Sequelize.STRING,
-					},
-				}, { freezeTableName: true }); // Model tableName will be the same as the model name: true // Model tableName will be the same as the model name
+				// var Transaction = sequelize.define('transaction', {
+				// 	date: {
+				// 		type: Sequelize.STRING,
+				// 	},
+				// 	amount: {
+				// 		type: Sequelize.STRING,
+				// 	},
+				// }, { freezeTableName: true }); // Model tableName will be the same as the model name: true // Model tableName will be the same as the model name
 
-				Transaction.sync({force: true}).then(function () {
-					// Table created
-					Transaction.create({
-						date: payment.date, 
-						amount: payment.amount
+				Transaction
+					.build({ date: payment.date, amount: payment.amount })
+					.save()
+					.then(function(anotherTransaction) {
+					// you can now access the currently saved task with the variable anotherTask... nice!
+						console.log('Transaction saved successfully');
+					}).catch(function(error) {
+					// Ooops, do some error-handling
+						console.log(error);
 					});
-				});
-
-				console.log('Transaction saved successfully');
 
 				console.log(" [x] %s", payment.amount);
 			}, {noAck: true});
