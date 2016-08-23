@@ -20,6 +20,7 @@ var port 		= 2220; // used to create, sign, and verify tokens
 mongoose.connect(config.database); // connect to database
 
 app.set('superSecret', config.secret); // secret variable
+amqp.connect('amqp://localhost', function(err, conn) {}); //connect message broker
 
 // use body parser so we can get info from POST and/or URL parameters
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -112,28 +113,32 @@ app.get('/setup', function(req, res) {
 // =======================
 amqp.connect('amqp://localhost', function(err, conn) {
 	conn.createChannel(function(err, ch) {
-		var q 	= 'thunderpayment';
+		var ex 	= 'thunderpayment';
 
-		ch.assertQueue(q, {durable: false});
+		ch.assertExchange(ex, 'fanout', {durable: false});
 
-		console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", q);
-		ch.consume(q, function(msg) {
-			var payment 	= msg.content;
-			console.log(" [x] Received %s", payment.toString());
+		ch.assertQueue('', {exclusive: true}, function(err, q) {
+			console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", q.queue);
+			ch.bindQueue(q.queue, ex, '');
 
-			// create a sample transaction
-			var tlab 	= new Transaction({ date: payment.date, amount: payment.amount});
+			ch.consume(q.queue, function(msg) {
+				var payment	= JSON.parse(msg.content.toString());
 
-			// save the sample Transaction
-			tlab.save(function(err) {
-				if (err) throw err;
+				var tlab 	= new Transaction({ date: payment.date, amount: payment.amount});
 
-				console.log('Transaction saved successfully');
-			});
+				// save the sample Transaction
+				tlab.save(function(err) {
+					if (err) throw err;
 
-		}, {noAck: true});
+					console.log('Transaction saved successfully');
+				});
+
+				console.log(" [x] %s", payment.amount);
+			}, {noAck: true});
+		});
 	});
 });
+
 
 
 // =======================
