@@ -116,7 +116,7 @@ app.get('/setup', function(req, res) {
 // =======================
 amqp.connect('amqp://localhost', function(err, conn) {
 	conn.createChannel(function(err, ch) {
-		var ex 	= 'thunderpayment';
+		var ex 				= 'tlab.payment.accepted';
 
 		ch.assertExchange(ex, 'fanout', {durable: false});
 
@@ -126,15 +126,6 @@ amqp.connect('amqp://localhost', function(err, conn) {
 
 			ch.consume(q.queue, function(msg) {
 				var payment	= JSON.parse(msg.content.toString());
-
-				// var Transaction = sequelize.define('transaction', {
-				// 	date: {
-				// 		type: Sequelize.STRING,
-				// 	},
-				// 	amount: {
-				// 		type: Sequelize.STRING,
-				// 	},
-				// }, { freezeTableName: true }); // Model tableName will be the same as the model name: true // Model tableName will be the same as the model name
 
 				Transaction
 					.build({ date: payment.date, amount: payment.amount })
@@ -150,6 +141,33 @@ amqp.connect('amqp://localhost', function(err, conn) {
 				console.log(" [x] %s", payment.amount);
 			}, {noAck: true});
 		});
+
+		var ex2 			= 'tlab.billing.created';
+
+		ch.assertExchange(ex2, 'fanout', {durable: false});
+
+		ch.assertQueue('', {exclusive: true}, function(err, q) {
+			console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", q.queue);
+			ch.bindQueue(q.queue, ex2, '');
+
+			ch.consume(q.queue, function(msg) {
+				var billing	= JSON.parse(msg.content.toString());
+
+				Transaction
+					.build({ date: billing.date, amount: billing.amount })
+					.save()
+					.then(function(anotherTransaction) {
+					// you can now access the currently saved task with the variable anotherTask... nice!
+						console.log('Transaction saved successfully');
+					}).catch(function(error) {
+					// Ooops, do some error-handling
+						console.log(error);
+					});
+
+				console.log(" [x] %s", billing.amount);
+			}, {noAck: true});
+		});
+
 	});
 });
 

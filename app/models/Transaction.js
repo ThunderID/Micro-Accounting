@@ -11,3 +11,12 @@ module.exports 	= sequelize.define('Transaction', {
 						type: Sequelize.STRING,
 					},
 				  }, { freezeTableName: true }); // Model tableName will be the same as the model name
+
+var Transaction	= sequelize.define('transaction', {
+						date: {
+							type: Sequelize.STRING,
+						},
+						amount: {
+							type: Sequelize.STRING,
+						},
+					}, { freezeTableName: true }); // Model tableName will be the same as the model name: true // Model tableName will be the same as the model name
