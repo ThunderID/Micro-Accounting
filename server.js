@@ -80,11 +80,6 @@ app.get('/', function(req, res) { // basic route
 
 // API ROUTES -------------------
 
-// route to show a random message (GET http://localhost:2222/api/)
-apiRoutes.get('/', function(req, res) {
-  res.json({ message: 'Welcome to the coolest API on earth!' });
-});
-
 // route to return all transactions (GET http://localhost:2222/api/transactions)
 apiRoutes.get('/transactions', function(req, res) {
 	Transaction.findAndCountAll().then(function (transactions) {
@@ -96,59 +91,19 @@ apiRoutes.get('/transactions', function(req, res) {
 app.use('/api', apiRoutes);
 
 // =======================
-// initial transaction ===
-// =======================
-app.get('/setup', function(req, res) {
-	Transaction
-		.build({ date: '2016-01-01', amount: '50000'})
-		.save()
-		.then(function(anotherTransaction) {
-		// you can now access the currently saved Transaction with the variable anotherTransaction... nice!
-			console.log('Transaction saved successfully');
-		}).catch(function(error) {
-		// Ooops, do some error-handling
-			console.log('Transaction not saved');
-		});
-});
-
-// =======================
 // handling queue ========
 // =======================
 amqp.connect('amqp://localhost', function(err, conn) {
 	conn.createChannel(function(err, ch) {
-		var ex 				= 'tlab.payment.accepted';
+		var ex2 			= 'topic_logs';
 
-		ch.assertExchange(ex, 'fanout', {durable: false});
-
-		ch.assertQueue('', {exclusive: true}, function(err, q) {
-			console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", q.queue);
-			ch.bindQueue(q.queue, ex, '');
-
-			ch.consume(q.queue, function(msg) {
-				var payment	= JSON.parse(msg.content.toString());
-
-				Transaction
-					.build({ date: payment.date, amount: payment.amount })
-					.save()
-					.then(function(anotherTransaction) {
-					// you can now access the currently saved task with the variable anotherTask... nice!
-						console.log('Transaction saved successfully');
-					}).catch(function(error) {
-					// Ooops, do some error-handling
-						console.log(error);
-					});
-
-				console.log(" [x] %s", payment.amount);
-			}, {noAck: true});
-		});
-
-		var ex2 			= 'tlab.billing.created';
-
-		ch.assertExchange(ex2, 'fanout', {durable: false});
+		ch.assertExchange(ex2, 'topic', {durable: false});
 
 		ch.assertQueue('', {exclusive: true}, function(err, q) {
 			console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", q.queue);
-			ch.bindQueue(q.queue, ex2, '');
+
+			ch.bindQueue(q.queue, ex2, 'tlab.billing.*');
+			ch.bindQueue(q.queue, ex2, 'tlab.payment.accepted');
 
 			ch.consume(q.queue, function(msg) {
 				var billing	= JSON.parse(msg.content.toString());
