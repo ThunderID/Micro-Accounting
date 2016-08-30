@@ -17,13 +17,11 @@ class CreateAccountTable extends Migration
 			$table->integer('company_id')->unsigned()->index();
 			$table->string('name', 255);
 			$table->string('code', 255);
-			$table->string('type', 255);
-			$table->boolean('is_debit');
+			$table->enum('type', ['asset', 'liability', 'equity', 'income', 'expense']);
 			$table->timestamps();
 			$table->softDeletes();
 			
-			$table->index(['deleted_at', 'parent_account_id', 'transaction_id']);
-			$table->index(['deleted_at', 'account_id']);
+			$table->index(['deleted_at', 'company_id']);
 		});
 	}
 

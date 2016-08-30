@@ -14,3 +14,57 @@
 $app->get('/', function () use ($app) {
     return $app->version();
 });
+
+$app->get('/accounts',
+	[
+		'uses'				=> 'AccountController@index'
+	]
+);
+
+$app->post('/accounts',
+	[
+		'uses'				=> 'AccountController@post'
+	]
+);
+
+$app->delete('/accounts',
+	[
+		'uses'				=> 'AccountController@delete'
+	]
+);
+
+$app->get('/transactions/{type}',
+	[
+		'uses'				=> 'TransactionController@index'
+	]
+);
+
+$app->post('/transactions/{type}',
+	[
+		'uses'				=> 'TransactionController@post'
+	]
+);
+
+$app->delete('/transactions/{type}',
+	[
+		'uses'				=> 'TransactionController@delete'
+	]
+);
+
+$app->get('/journals',
+	[
+		'uses'				=> 'JournalController@index'
+	]
+);
+
+$app->post('/journals',
+	[
+		'uses'				=> 'JournalController@post'
+	]
+);
+
+$app->delete('/journals',
+	[
+		'uses'				=> 'JournalController@delete'
+	]
+);

@@ -18,6 +18,7 @@ class CreateTransactionDetailTable extends Migration
 			$table->text('description');
 			$table->integer('quantity');
 			$table->double('price');
+			$table->string('unit', 255);
 			$table->double('discount');
 			$table->timestamps();
 			$table->softDeletes();
