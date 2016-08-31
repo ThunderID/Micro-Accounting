@@ -40,4 +40,12 @@ class ProceedJournal implements ProceedjournalInterface
 
 		$this->journal		= $stored_journal;
 	}
+
+	public function deletejournal(Journal $journal)
+	{
+		if(!$journal->delete())
+		{
+			$this->errors->add('Journal', $journal->getError());
+		}
+	}
 }

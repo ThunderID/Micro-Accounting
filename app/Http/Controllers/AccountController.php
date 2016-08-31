@@ -11,8 +11,9 @@ use Illuminate\Http\Request;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
-use App\Services\AccountStore;
 use App\Entities\Account;
+use App\Services\AccountStore;
+use App\Services\AccountDelete;
 
 /**
  * Account resource representation.
@@ -21,10 +22,11 @@ use App\Entities\Account;
  */
 class AccountController extends Controller
 {
-	public function __construct(Request $request, AccountStore $store)
+	public function __construct(Request $request, AccountStore $store, AccountDelete $delete)
 	{
 		$this->request 				= $request;
 		$this->store				= $store;
+		$this->delete				= $delete;
 	}
 
 	/**
@@ -129,12 +131,12 @@ class AccountController extends Controller
 	 *
 	 * Store a new Account with a goods costs and service costs.
 	 *
-	 * @Post("/")
+	 * @Post("/accounts")
 	 * @Versions({"v1"})
 	 * @Transaction({
 	 *      @Request({"id":null,"company_id":"integer","name":"string","code":"string","type":"string"}),
 	 *      @Response(200, body={"status": "success", "data": {"id":null,"company_id":"integer","name":"string","code":"string","type":"string"}}),
-	 *      @Response(422, body={"status": {"error": {"code must be unique."}}})
+	 *      @Response(200, body={"status": {"error": {"code must be unique."}}})
 	 * })
 	 */
 	public function post()
@@ -157,42 +159,23 @@ class AccountController extends Controller
 	 *
 	 * Delete a new Account with a goods costs and service costs.
 	 *
-	 * @Post("/")
+	 * @Delete("/accounts")
 	 * @Versions({"v1"})
 	 * @Transaction({
 	 *      @Request({"id":null}),
-	 *      @Response(200, body={"status": "success", "data": {"id":null,"ref_number":"string","issued_by":"integer","company_id":"integer","customer_id":"integer","issued_at":"datetime","due_at":"datetime","goods":[{"id":null,"Account_id":"integer","product_id":"integer","quantity":"integer","price":"double","discount":"double"}],"services":[{"id":null,"Account_id":"integer","service_id":"integer","price":"double","discount":"double"}]}}),
-	 *      @Response(422, body={"status": {"error": {"cannot delete."}}})
-	 * })
-	 * Event created : tlab.Account.deleted
+	 *      @Response(200, body={"status": "success", "data": {"id":null,"company_id":"integer","name":"string","code":"string","type":"string"}}),
+	 *      @Response(200, body={"status": {"error": {"code must be unique."}}})
 	 */
 	public function delete()
 	{
-		$result				= Account::id(Input::get('id'))->first();
+		$result				= Account::findorfail(Input::get('id'));
 
-		if($this->deleted->delete($result))
+		if($this->delete->delete($result))
 		{
-			$connection 	= new AMQPStreamConnection('localhost', 5672, 'guest', 'guest');
-			$channel 		= $connection->channel();
-			
-			$routing_key 	= 'tlab.Account.deleted';
-
-			$channel->exchange_declare('topic_logs', 'topic', false, false, false);
-
-			$data 		= '{"date": "'.$this->deleted->getData()['issued_at'].'","amount": "'.abs($this->deleted->getData()['amount']).'"}';
-			$msg 		= new AMQPMessage($data);
-
-			$channel->basic_publish($msg, 'topic_logs', $routing_key);
-
-			echo " [x] Sent ", $data, "\n";
-
-			$channel->close();
-			$connection->close();
-
-			return response()->json( JSend::success($this->deleted->getData())->asArray())
+			return response()->json( JSend::success($this->delete->getData())->asArray())
 					->setCallback($this->request->input('callback'));
 		}
 
-		return response()->json( JSend::error($this->deleted->getError())->asArray());
+		return response()->json( JSend::error($this->delete->getError())->asArray());
 	}
 }

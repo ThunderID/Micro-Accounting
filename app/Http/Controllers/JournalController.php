@@ -11,8 +11,9 @@ use Illuminate\Http\Request;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
-use App\Services\JournalStore;
 use App\Entities\Journal;
+use App\Services\JournalStore;
+use App\Services\JournalDelete;
 
 /**
  * Journal resource representation.
@@ -21,10 +22,11 @@ use App\Entities\Journal;
  */
 class JournalController extends Controller
 {
-	public function __construct(Request $request, JournalStore $store)
+	public function __construct(Request $request, JournalStore $store, JournalDelete $delete)
 	{
 		$this->request 				= $request;
 		$this->store				= $store;
+		$this->delete				= $delete;
 	}
 
 	/**
@@ -35,8 +37,8 @@ class JournalController extends Controller
 	 * @Get("/Journals")
 	 * @Versions({"v1"})
 	 * @Transaction({
-	 *      @Request({"type":"","search":[{"name":string, "companyid":"integer","code":"string","type":"asset|liability|equity|income|expense"}],"sort":[{"newest":"asc","company":"desc","type":"desc", "code":"asc"}], "take":"integer", "skip":"integer"}),
-	 *      @Response(200, body={"status": "success", "data": {"data":[{"id":null,"company_id":"integer","name":"string","code":"string","type":"string"}],"count":"integer"} })
+	 *      @Request({"type":"","search":[{"id":"integer", "transactionid":"integer","parentaccountid":"integer","accountid":"integer"}],"sort":[{"newest":"asc","transaction":"desc","debit":"desc", "credit":"asc"}], "take":"integer", "skip":"integer"}),
+	 *      @Response(200, body={"status": "success", "data": {"data":[{"id":null,"company_id":"integer","transaction_id":"integer","account_id":"integer","parent_account_id":"integer", "description":"text","debit":"integer","credit":integer,"parentaccount":{"company_id":"integer","name":"string","type":"string","code":"string"},"account":{"company_id":"integer","name":"string","type":"string","code":"string"},"transaction":{"issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}}],"count":"integer"} })
 	 * })
 	 */
 	public function index()
@@ -53,6 +55,9 @@ class JournalController extends Controller
 				{
 					case 'id':
 						$result		= $result->id($value);
+						break;
+					case 'companyid':
+						$result		= $result->companyid($value);
 						break;
 					case 'transactionid':
 						$result		= $result->transactionid($value);
@@ -115,7 +120,7 @@ class JournalController extends Controller
 			$result                 = $result->take($take);
 		}
 
-		$result 					= $result->with(['parentaccount', 'account'])->get();
+		$result 					= $result->with(['parentaccount', 'account', 'transaction'])->get();
 		
 		return response()->json( JSend::success(['data' => $result->toArray(), 'count' => $count])->asArray())
 				->setCallback($this->request->input('callback'));
@@ -124,14 +129,14 @@ class JournalController extends Controller
 	/**
 	 * Store Journal
 	 *
-	 * Store a new Journal with a goods costs and service costs.
+	 * Store a new Journal
 	 *
 	 * @Post("/")
 	 * @Versions({"v1"})
 	 * @Transaction({
-	 *      @Request({"id":null,"company_id":"integer","name":"string","code":"string","type":"string"}),
-	 *      @Response(200, body={"status": "success", "data": {"id":null,"company_id":"integer","name":"string","code":"string","type":"string"}}),
-	 *      @Response(422, body={"status": {"error": {"code must be unique."}}})
+	 *      @Request({"id":null,"company_id":"integer","transaction_id":"integer","account_id":"integer","parent_account_id":"integer", "description":"text","debit":"integer","credit":integer})
+	 *      @Response(200, body={"status": "success", "data": {"id":null,"company_id":"integer","transaction_id":"integer","account_id":"integer","parent_account_id":"integer", "description":"text","debit":"integer","credit":integer,"parentaccount":{"company_id":"integer","name":"string","type":"string","code":"string"},"account":{"company_id":"integer","name":"string","type":"string","code":"string"},"transaction":{"issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}} })
+	 *      @Response(422, body={"status": {"error": {"account invalid."}}})
 	 * })
 	 */
 	public function post()
@@ -158,38 +163,20 @@ class JournalController extends Controller
 	 * @Versions({"v1"})
 	 * @Transaction({
 	 *      @Request({"id":null}),
-	 *      @Response(200, body={"status": "success", "data": {"id":null,"ref_number":"string","issued_by":"integer","company_id":"integer","customer_id":"integer","issued_at":"datetime","due_at":"datetime","goods":[{"id":null,"Journal_id":"integer","product_id":"integer","quantity":"integer","price":"double","discount":"double"}],"services":[{"id":null,"Journal_id":"integer","service_id":"integer","price":"double","discount":"double"}]}}),
+	 *      @Response(200, body={"status": "success", "data": {"id":null,"company_id":"integer","transaction_id":"integer","account_id":"integer","parent_account_id":"integer", "description":"text","debit":"integer","credit":integer,"parentaccount":{"company_id":"integer","name":"string","type":"string","code":"string"},"account":{"company_id":"integer","name":"string","type":"string","code":"string"},"transaction":{"issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}} })
 	 *      @Response(422, body={"status": {"error": {"cannot delete."}}})
 	 * })
-	 * Event created : tlab.Journal.deleted
 	 */
 	public function delete()
 	{
-		$result				= Journal::id(Input::get('id'))->first();
+		$result				= Journal::id(Input::get('id'))->with(['parentaccount', 'account', 'transaction'])->first();
 
-		if($this->deleted->delete($result))
+		if($this->delete->delete($result))
 		{
-			$connection 	= new AMQPStreamConnection('localhost', 5672, 'guest', 'guest');
-			$channel 		= $connection->channel();
-			
-			$routing_key 	= 'tlab.journal.deleted';
-
-			$channel->exchange_declare('topic_logs', 'topic', false, false, false);
-
-			$data 		= '{"date": "'.$this->deleted->getData()['issued_at'].'","amount": "'.abs($this->deleted->getData()['amount']).'"}';
-			$msg 		= new AMQPMessage($data);
-
-			$channel->basic_publish($msg, 'topic_logs', $routing_key);
-
-			echo " [x] Sent ", $data, "\n";
-
-			$channel->close();
-			$connection->close();
-
-			return response()->json( JSend::success($this->deleted->getData())->asArray())
+			return response()->json( JSend::success($this->delete->getData())->asArray())
 					->setCallback($this->request->input('callback'));
 		}
 
-		return response()->json( JSend::error($this->deleted->getError())->asArray());
+		return response()->json( JSend::error($this->delete->getError())->asArray());
 	}
 }

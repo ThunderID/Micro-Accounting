@@ -40,4 +40,12 @@ class ProceedAccount implements ProceedAccountInterface
 
 		$this->account			= $stored_account;
 	}
+
+	public function deleteaccount(Account $account)
+	{
+		if(!$account->delete())
+		{
+			$this->errors->add('Account', $account->getError());
+		}
+	}
 }

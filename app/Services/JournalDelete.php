@@ -6,20 +6,20 @@ use Illuminate\Support\MessageBag;
 
 use App\Entities\Journal;
 
-use App\Contracts\JournalStoreInterface;
+use App\Contracts\JournalDeleteInterface;
 
 use App\Contracts\Policies\ValidatingJournalInterface;
 use App\Contracts\Policies\ProceedJournalInterface;
 use App\Contracts\Policies\EffectJournalInterface;
 
-class JournalStore implements JournalStoreInterface 
+class JournalDelete implements JournalDeleteInterface 
 {
 	protected $journal;
 	protected $errors;
 	protected $saved_data;
 	protected $pre;
-	protected $pro;
 	protected $post;
+	protected $pro;
 
 	/**
 	 * construct function, iniate error
@@ -27,10 +27,10 @@ class JournalStore implements JournalStoreInterface
 	 */
 	function __construct(ValidatingJournalInterface $pre, ProceedJournalInterface $pro, EffectJournalInterface $post)
 	{
-		$this->errors 		= new MessageBag;
-		$this->pre 			= $pre;
-		$this->pro 			= $pro;
-		$this->post 		= $post;
+		$this->errors 	= new MessageBag;
+		$this->pre 		= $pre;
+		$this->pro 		= $pro;
+		$this->post 	= $post;
 	}
 
 	/**
@@ -54,36 +54,24 @@ class JournalStore implements JournalStoreInterface
 	}
 
 	/**
-	 * Checkout
-	 *
-	 * 1. Call Class fill
-	 * 
-	 * @return Response
-	 */
-	public function fill(array $journal)
-	{
-		$this->journal 		= $journal;
-	}
-
-	/**
 	 * Save
 	 *
 	 * Here's the workflow
 	 * 
 	 * @return Response
 	 */
-	public function save()
+	public function delete(Journal $journal)
 	{
-		$pre_journal			= Journal::id($this->journal['id'])->first();
-	
+		$this->journal 			= $journal->toArray();
+		
 		/** PREPROCESS */
 
-		//1. validate Journal
-		$this->pre->validatejournal($this->journal); 
+		//1. Validate Journal
+		$this->pre->validatejournaldelete($journal); 
 
 		if($this->pre->errors->count())
 		{
-			$this->errors		= $this->pre->errors;
+			$this->errors 		= $this->pre->errors;
 
 			return false;
 		}
@@ -92,13 +80,13 @@ class JournalStore implements JournalStoreInterface
 
 		/** PROCESS */
 
-		//2. Store Data Journal
-		$this->pro->storejournal($this->journal); 
-		
+		//2. Delete goods
+		$this->pro->deletejournal($journal); 
+
 		if($this->pro->errors->count())
 		{
 			\DB::rollback();
-
+			
 			$this->errors 		= $this->pro->errors;
 
 			return false;
@@ -107,9 +95,7 @@ class JournalStore implements JournalStoreInterface
 		\DB::commit();
 
 		//3. Return Journal Model Object
-		$pro_journal			= Journal::id($this->pro->journal['id'])->with(['parentaccount', 'account', 'transaction'])->first();
-
-		$this->saved_data		= $pro_journal;
+		$this->saved_data		= $this->journal;
 
 		return true;
 	}

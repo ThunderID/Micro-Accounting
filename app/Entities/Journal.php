@@ -6,6 +6,8 @@ use App\Entities\TraitRelations\BelongsToAccountTrait;
 use App\Entities\TraitRelations\BelongsToTransactionTrait;
 use App\Entities\TraitRelations\BelongsToParentAccountTrait;
 
+use App\Entities\TraitLibraries\FieldCompanyTrait;
+
 class Journal extends BaseModel
 {
 	/**
@@ -15,6 +17,12 @@ class Journal extends BaseModel
 	use BelongsToTransactionTrait;
 	use BelongsToAccountTrait;
 	use BelongsToParentAccountTrait;
+
+	/**
+	 * Libraries Traits for scopes
+	 *
+	 */
+	use FieldCompanyTrait;
 
 	/**
 	 * The database table used by the model.
@@ -51,6 +59,7 @@ class Journal extends BaseModel
 	 */
 
 	protected $fillable				=	[
+											'company_id'					,
 											'transaction_id'				,
 											'parent_account_id'				,
 											'account_id'					,

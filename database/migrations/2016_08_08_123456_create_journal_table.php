@@ -14,6 +14,7 @@ class CreateJournalTable extends Migration
 	{
 		Schema::create('journals', function (Blueprint $table) {
 			$table->increments('id');
+			$table->integer('company_id')->unsigned()->index();
 			$table->integer('transaction_id')->unsigned()->index();
 			$table->integer('parent_account_id')->unsigned()->index();
 			$table->integer('account_id')->unsigned()->index();
@@ -23,8 +24,8 @@ class CreateJournalTable extends Migration
 			$table->timestamps();
 			$table->softDeletes();
 			
-			$table->index(['deleted_at', 'parent_account_id', 'transaction_id']);
-			$table->index(['deleted_at', 'account_id']);
+			$table->index(['deleted_at', 'company_id', 'parent_account_id']);
+			$table->index(['deleted_at', 'company_id', 'account_id']);
 		});
 	}
 
