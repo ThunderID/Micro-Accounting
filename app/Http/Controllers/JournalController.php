@@ -18,7 +18,7 @@ use App\Services\JournalDelete;
 /**
  * Journal resource representation.
  *
- * @Resource("Journals", uri="/Journals")
+ * @Resource("Journals", uri="/journals")
  */
 class JournalController extends Controller
 {
@@ -34,11 +34,11 @@ class JournalController extends Controller
 	 *
 	 * Get a JSON representation of all the stored Journals.
 	 *
-	 * @Get("/Journals")
+	 * @Get("/{type}")
 	 * @Versions({"v1"})
 	 * @Transaction({
-	 *      @Request({"type":"","search":[{"id":"integer", "transactionid":"integer","parentaccountid":"integer","accountid":"integer"}],"sort":[{"newest":"asc","transaction":"desc","debit":"desc", "credit":"asc"}], "take":"integer", "skip":"integer"}),
-	 *      @Response(200, body={"status": "success", "data": {"data":[{"id":null,"company_id":"integer","transaction_id":"integer","transact_at":"datetime","type":"cash|accrual", "currency":"string","notes":"text","details":{"id":"integer","journal_id":"integer","account_id":"integer","debit":"integer","credit":"integer","account":{"company_id":"integer","name":"string","type":"string","code":"string"}},"transaction":{"id":"integer","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}}],"count":"integer"} })
+	 *      @Request({"type":"cash|accrual","search":{"id":"integer", "transactionid":"integer","parentaccountid":"integer","accountid":"integer"},"sort":{"newest":"asc","transaction":"desc","debit":"desc", "credit":"asc"}, "take":"integer", "skip":"integer"}),
+	 *      @Response(200, body={"status": "success", "data": {"data":{"id":null,"company_id":"integer","transaction_id":"integer","transact_at":"datetime","type":"cash|accrual", "currency":"string","notes":"text","details":{"id":"integer","journal_id":"integer","account_id":"integer","debit":"integer","credit":"integer","account":{"company_id":"integer","name":"string","type":"string","code":"string"}},"transaction":{"id":"integer","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}},"count":"integer"} })
 	 * })
 	 */
 	public function index($type = 'cash')
@@ -133,11 +133,11 @@ class JournalController extends Controller
 	 *
 	 * Store a new Journal
 	 *
-	 * @Post("/")
+	 * @Post("/{type}")
 	 * @Versions({"v1"})
 	 * @Transaction({
-	 *      @Request({"id":null,"company_id":"integer","transaction_id":"integer","transact_at":"datetime","type":"cash|accrual", "currency":"string","notes":"text","details":{"id":"integer","journal_id":"integer","account_id":"integer","debit":"integer","credit":"integer"}})
-	 *      @Response(200, body={"status": "success", "data": {"id":null,"company_id":"integer","transaction_id":"integer","transact_at":"datetime","type":"cash|accrual", "currency":"string","notes":"text","details":{"id":"integer","journal_id":"integer","account_id":"integer","debit":"integer","credit":"integer","account":{"company_id":"integer","name":"string","type":"string","code":"string"}},"transaction":{"id":"integer","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}} })
+	 *      @Request({"id":null,"company_id":"integer","transaction_id":"integer","transact_at":"datetime","type":"cash|accrual", "currency":"string","notes":"text","details":{"id":"integer","journal_id":"integer","account_id":"integer","debit":"integer","credit":"integer"}}),
+	 *      @Response(200, body={"status": "success", "data": {"id":null,"company_id":"integer","transaction_id":"integer","transact_at":"datetime","type":"cash|accrual", "currency":"string","notes":"text","details":{"id":"integer","journal_id":"integer","account_id":"integer","debit":"integer","credit":"integer","account":{"company_id":"integer","name":"string","type":"string","code":"string"}},"transaction":{"id":"integer","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}} }),
 	 *      @Response(422, body={"status": {"error": {"account invalid."}}})
 	 * })
 	 */
@@ -159,13 +159,13 @@ class JournalController extends Controller
 	/**
 	 * Delete Journal
 	 *
-	 * Delete a new Journal with a goods costs and service costs.
+	 * Delete a Journal
 	 *
-	 * @Post("/")
+	 * @Delete("/{type}")
 	 * @Versions({"v1"})
 	 * @Transaction({
 	 *      @Request({"id":null}),
-	 *      @Response(200, body={"status": "success", "data": {"id":null,"company_id":"integer","transaction_id":"integer","transact_at":"datetime","type":"cash|accrual", "currency":"string","notes":"text","details":{"id":"integer","journal_id":"integer","account_id":"integer","debit":"integer","credit":"integer","account":{"company_id":"integer","name":"string","type":"string","code":"string"}},"transaction":{"id":"integer","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}} })
+	 *      @Response(200, body={"status": "success", "data": {"id":null,"company_id":"integer","transaction_id":"integer","transact_at":"datetime","type":"cash|accrual", "currency":"string","notes":"text","details":{"id":"integer","journal_id":"integer","account_id":"integer","debit":"integer","credit":"integer","account":{"company_id":"integer","name":"string","type":"string","code":"string"}},"transaction":{"id":"integer","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}} }),
 	 *      @Response(422, body={"status": {"error": {"cannot delete."}}})
 	 * })
 	 */

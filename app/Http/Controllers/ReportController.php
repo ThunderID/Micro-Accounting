@@ -17,7 +17,7 @@ use App\Entities\Account;
 /**
  * Report resource representation.
  *
- * @Resource("Accounts", uri="/Reports")
+ * @Resource("Accounts", uri="/reports")
  */
 class ReportController extends Controller
 {
@@ -29,13 +29,13 @@ class ReportController extends Controller
 	/**
 	 * Report general ledger
 	 *
-	 * Get a JSON representation of all the stored journal.
+	 * Get a JSON representation of all the stored journal in various type of account.
 	 *
-	 * @Get("/reports/general/ledger")
+	 * @Get("/general/ledger/{mode}")
 	 * @Versions({"v1"})
 	 * @Transaction({
-	 *      @Request({"type":"","search":[{"name":string, "companyid":"integer","code":"string","type":"asset|liability|equity|income|expense"}],"sort":[{"newest":"asc","company":"desc","type":"desc", "code":"asc"}], "take":"integer", "skip":"integer"}),
-	 *      @Response(200, body={"status": "success", "data": {"data":[{"id":null,"company_id":"integer","name":"string","code":"string","type":"string"}],"count":"integer"} })
+	 *      @Request({"mode":"cash|accrual","ondate":"datetime Y-m-d H:i:s","company_id":"integer"}),
+	 *      @Response(200, body={"status": "success", "data": {"assets":{"id":null,"company_id":"integer","name":"string","code":"string","type":"string","amount":"integer"},"liabilities":{"id":null,"company_id":"integer","name":"string","code":"string","type":"string","amount":"integer"},"equities":{"id":null,"company_id":"integer","name":"string","code":"string","type":"string","amount":"integer"},"incomes":{"id":null,"company_id":"integer","name":"string","code":"string","type":"string","amount":"integer"},"expenses":{"id":null,"company_id":"integer","name":"string","code":"string","type":"string","amount":"integer"} }})
 	 * })
 	 */
 	public function generalledger($mode = 'cash')

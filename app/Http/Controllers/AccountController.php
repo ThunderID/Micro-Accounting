@@ -18,7 +18,7 @@ use App\Services\AccountDelete;
 /**
  * Account resource representation.
  *
- * @Resource("Accounts", uri="/Accounts")
+ * @Resource("Accounts", uri="/accounts")
  */
 class AccountController extends Controller
 {
@@ -34,11 +34,11 @@ class AccountController extends Controller
 	 *
 	 * Get a JSON representation of all the stored Accounts.
 	 *
-	 * @Get("/accounts")
+	 * @Get("/")
 	 * @Versions({"v1"})
 	 * @Transaction({
-	 *      @Request({"type":"","search":[{"name":string, "companyid":"integer","code":"string","type":"asset|liability|equity|income|expense"}],"sort":[{"newest":"asc","company":"desc","type":"desc", "code":"asc"}], "take":"integer", "skip":"integer"}),
-	 *      @Response(200, body={"status": "success", "data": {"data":[{"id":null,"company_id":"integer","name":"string","code":"string","type":"string"}],"count":"integer"} })
+	 *      @Request({"search":{"name":"string", "companyid":"integer","code":"string","type":"asset|liability|equity|income|expense"},"sort":{"newest":"asc","company":"desc","type":"desc", "code":"asc"}, "take":"integer", "skip":"integer"}),
+	 *      @Response(200, body={"status": "success", "data": {"data":{"id":null,"company_id":"integer","name":"string","code":"string","type":"string"},"count":"integer"} })
 	 * })
 	 */
 	public function index()
@@ -129,9 +129,9 @@ class AccountController extends Controller
 	/**
 	 * Store Account
 	 *
-	 * Store a new Account with a goods costs and service costs.
+	 * Store a new Account in a company.
 	 *
-	 * @Post("/accounts")
+	 * @Post("/")
 	 * @Versions({"v1"})
 	 * @Transaction({
 	 *      @Request({"id":null,"company_id":"integer","name":"string","code":"string","type":"string"}),
@@ -157,14 +157,15 @@ class AccountController extends Controller
 	/**
 	 * Delete Account
 	 *
-	 * Delete a new Account with a goods costs and service costs.
+	 * Delete an account of company
 	 *
-	 * @Delete("/accounts")
+	 * @Delete("/")
 	 * @Versions({"v1"})
 	 * @Transaction({
 	 *      @Request({"id":null}),
 	 *      @Response(200, body={"status": "success", "data": {"id":null,"company_id":"integer","name":"string","code":"string","type":"string"}}),
 	 *      @Response(200, body={"status": {"error": {"code must be unique."}}})
+	 * })
 	 */
 	public function delete()
 	{

@@ -10,67 +10,70 @@
 | and give it the Closure to call when that URI is requested.
 |
 */
+$api 	= app('Dingo\Api\Routing\Router');
 
-$app->get('/', function () use ($app) {
-    return $app->version();
+$api->version('v1', function ($api) 
+{
+    $api->group(['namespace' => 'App\Http\Controllers'], function ($api) 
+    {
+		$api->get('/accounts',
+			[
+				'uses'				=> 'AccountController@index'
+			]
+		);
+
+		$api->post('/accounts',
+			[
+				'uses'				=> 'AccountController@post'
+			]
+		);
+
+		$api->delete('/accounts',
+			[
+				'uses'				=> 'AccountController@delete'
+			]
+		);
+
+		$api->get('/transactions/{type}',
+			[
+				'uses'				=> 'TransactionController@index'
+			]
+		);
+
+		$api->post('/transactions/{type}',
+			[
+				'uses'				=> 'TransactionController@post'
+			]
+		);
+
+		$api->delete('/transactions/{type}',
+			[
+				'uses'				=> 'TransactionController@delete'
+			]
+		);
+
+		$api->get('/journals/{type}',
+			[
+				'uses'				=> 'JournalController@index'
+			]
+		);
+
+		$api->post('/journals/{type}',
+			[
+				'uses'				=> 'JournalController@post'
+			]
+		);
+
+		$api->delete('/journals/{type}',
+			[
+				'uses'				=> 'JournalController@delete'
+			]
+		);
+
+		$api->get('/reports/general/ledger/{mode}',
+			[
+				'uses'				=> 'ReportController@generalledger'
+			]
+		);
+	});
 });
-
-$app->get('/accounts',
-	[
-		'uses'				=> 'AccountController@index'
-	]
-);
-
-$app->post('/accounts',
-	[
-		'uses'				=> 'AccountController@post'
-	]
-);
-
-$app->delete('/accounts',
-	[
-		'uses'				=> 'AccountController@delete'
-	]
-);
-
-$app->get('/transactions/{type}',
-	[
-		'uses'				=> 'TransactionController@index'
-	]
-);
-
-$app->post('/transactions/{type}',
-	[
-		'uses'				=> 'TransactionController@post'
-	]
-);
-
-$app->delete('/transactions/{type}',
-	[
-		'uses'				=> 'TransactionController@delete'
-	]
-);
-
-$app->get('/journals/{type}',
-	[
-		'uses'				=> 'JournalController@index'
-	]
-);
-
-$app->post('/journals/{type}',
-	[
-		'uses'				=> 'JournalController@post'
-	]
-);
-
-$app->delete('/journals/{type}',
-	[
-		'uses'				=> 'JournalController@delete'
-	]
-);
-
-$app->get('/reports/general/ledger/{mode}',
-	[
-		'uses'				=> 'ReportController@generalledger'
-	]
-);

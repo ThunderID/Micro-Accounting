@@ -52,6 +52,7 @@ class TransactionDetail extends BaseModel
 											'transaction_id'				,
 											'description'					,
 											'quantity'						,
+											'unit'							,
 											'price'							,
 											'discount'						,
 										];
@@ -65,6 +66,7 @@ class TransactionDetail extends BaseModel
 											'transaction_id'				=> 'exists:transactions,id',
 											'description'					=> 'required',
 											'quantity'						=> 'numeric',
+											'unit'							=> 'max:255',
 											'price'							=> 'numeric',
 											'discount'						=> 'numeric',
 										];

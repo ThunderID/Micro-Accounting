@@ -34,7 +34,7 @@ use App\Entities\Transaction;
 /**
  * Transaction resource representation.
  *
- * @Resource("Transactions", uri="/Transactions")
+ * @Resource("Transactions", uri="/transactions")
  */
 class TransactionController extends Controller
 {
@@ -66,11 +66,11 @@ class TransactionController extends Controller
 	 *
 	 * Get a JSON representation of all the stored Transactions.
 	 *
-	 * @Get("/Transactions/{type}")
+	 * @Get("/{type}")
 	 * @Versions({"v1"})
 	 * @Transaction({
-	 *      @Request({"type":"all|cash_note|cheque|credit_memo|debit_memo|giro|invoice|memorial|receipt","search":[{"id":"integer", "name":string, "companyid":"integer","code":"string","type":"cash_note|cheque|credit_memo|debit_memo|giro|invoice|memorial|receipt"}],"sort":[{"newest":"asc","company":"desc","type":"desc", "code":"asc"}], "take":"integer", "skip":"integer"}),
-	 *      @Response(200, body={"status": "success", "data": {"data":[{"id":"null","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime","details":[{"id":"integer","transaction_id":"integer","description":"string","quantity":"integer","price":"integer","discount":"integer"}]}],"count":"integer"} })
+	 *      @Request({"type":"all|cash_note|cheque|credit_memo|debit_memo|giro|invoice|memorial|receipt","search":{"id":"integer", "name":"string", "companyid":"integer","code":"string","type":"cash_note|cheque|credit_memo|debit_memo|giro|invoice|memorial|receipt"},"sort":{"newest":"asc","company":"desc","type":"desc", "code":"asc"}, "take":"integer", "skip":"integer"}),
+	 *      @Response(200, body={"status": "success", "data": {"data":{"id":"null","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime","details":{"id":"integer","transaction_id":"integer","description":"string","quantity":"integer","unit":"string","price":"integer","discount":"integer"}},"count":"integer"} })
 	 * })
 	 */
 	public function index($type = 'all')
@@ -166,13 +166,13 @@ class TransactionController extends Controller
 	/**
 	 * Store Transaction
 	 *
-	 * Store a new Transaction with a goods costs and service costs.
+	 * Store a new Transaction with transaction details.
 	 *
-	 * @Post("/Transactions/{type}")
+	 * @Post("/{type}")
 	 * @Versions({"v1"})
 	 * @Transaction({
-	 *      @Request({"id":"null","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime","details":[{"id":"integer","transaction_id":"integer","description":"string","quantity":"integer","price":"integer","discount":"integer"}]}),
-	 *      @Response(200, body={"status": "success", "data": {"id":"null","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime","details":[{"id":"integer","transaction_id":"integer","description":"string","quantity":"integer","price":"integer","discount":"integer"}]}}),
+	 *      @Request({"id":"null","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime","details":{"id":"integer","transaction_id":"integer","description":"string","quantity":"integer","unit":"string","price":"integer","discount":"integer"}}),
+	 *      @Response(200, body={"status": "success", "data": {"id":"null","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime","details":{"id":"integer","transaction_id":"integer","description":"string","quantity":"integer","unit":"string","price":"integer","discount":"integer"}}}),
 	 *      @Response(422, body={"status": {"error": {"code must be unique."}}})
 	 * })
 	 */
@@ -224,13 +224,13 @@ class TransactionController extends Controller
 	/**
 	 * Delete Transaction
 	 *
-	 * Delete a new Transaction with a goods costs and service costs.
+	 * Delete a Transaction with transaction details.
 	 *
-	 * @Delete("/transactions/{type}")
+	 * @Delete("/{type}")
 	 * @Versions({"v1"})
 	 * @Transaction({
 	 *      @Request({"id":null}),
-	 *      @Response(200, body={"status": "success", "data": {"id":"null","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime","details":[{"id":"integer","transaction_id":"integer","description":"string","quantity":"integer","price":"integer","discount":"integer"}]} }),
+	 *      @Response(200, body={"status": "success", "data": {"id":"null","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime","details":{"id":"integer","transaction_id":"integer","description":"string","quantity":"integer","unit":"string","price":"integer","discount":"integer"}} }),
 	 *      @Response(422, body={"status": {"error": {"cannot delete."}}})
 	 * })
 	 */

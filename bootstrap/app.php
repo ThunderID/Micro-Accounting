@@ -23,6 +23,7 @@ $app = new Laravel\Lumen\Application(
     realpath(__DIR__.'/../')
 );
 
+
 $app->withFacades();
 
 $app->withEloquent();
@@ -82,6 +83,8 @@ $app->register(App\Providers\AppServiceProvider::class);
 $app->register(App\Providers\AccountServiceProvider::class);
 $app->register(App\Providers\TransactionServiceProvider::class);
 $app->register(App\Providers\JournalServiceProvider::class);
+$app->register(Dingo\Api\Provider\LumenServiceProvider::class);
+
 // $app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
 
@@ -96,8 +99,15 @@ $app->register(App\Providers\JournalServiceProvider::class);
 |
 */
 
+// $app['Dingo\Api\Auth\Auth']->extend('oauth', function ($app) {
+//    return new Dingo\Api\Auth\Provider\JWT($app['Tymon\JWTAuth\JWTAuth']);
+// });
+
+// Dingo\Api\Http\Response::addFormatter('json', new Dingo\Api\Http\Response\Format\Jsonp);
+
 $app->group(['namespace' => 'App\Http\Controllers'], function ($app) {
-    require __DIR__.'/../app/Http/routes.php';
+    require __DIR__.'/../app/Http/routes_no_jwt.php';
+    // require __DIR__.'/../app/Http/routes.php';
 });
 
 return $app;
