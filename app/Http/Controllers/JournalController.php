@@ -38,12 +38,14 @@ class JournalController extends Controller
 	 * @Versions({"v1"})
 	 * @Transaction({
 	 *      @Request({"type":"","search":[{"id":"integer", "transactionid":"integer","parentaccountid":"integer","accountid":"integer"}],"sort":[{"newest":"asc","transaction":"desc","debit":"desc", "credit":"asc"}], "take":"integer", "skip":"integer"}),
-	 *      @Response(200, body={"status": "success", "data": {"data":[{"id":null,"company_id":"integer","transaction_id":"integer","account_id":"integer","parent_account_id":"integer", "description":"text","debit":"integer","credit":integer,"parentaccount":{"company_id":"integer","name":"string","type":"string","code":"string"},"account":{"company_id":"integer","name":"string","type":"string","code":"string"},"transaction":{"id":"integer","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}}],"count":"integer"} })
+	 *      @Response(200, body={"status": "success", "data": {"data":[{"id":null,"company_id":"integer","transaction_id":"integer","transact_at":"datetime","type":"cash|accrual", "currency":"string","notes":"text","details":{"id":"integer","journal_id":"integer","account_id":"integer","debit":"integer","credit":"integer","account":{"company_id":"integer","name":"string","type":"string","code":"string"}},"transaction":{"id":"integer","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}}],"count":"integer"} })
 	 * })
 	 */
-	public function index()
+	public function index($type = 'cash')
 	{
 		$result						= new Journal;
+
+		$result						= $result->type($type);
 
 		if(Input::has('search'))
 		{
@@ -106,21 +108,21 @@ class JournalController extends Controller
 			}
 		}
 
-		$count                      = count($result->get());
+		$count						= count($result->get());
 
 		if(Input::has('skip'))
 		{
-			$skip                   = Input::get('skip');
-			$result                 = $result->skip($skip);
+			$skip					= Input::get('skip');
+			$result					= $result->skip($skip);
 		}
 
 		if(Input::has('take'))
 		{
-			$take                   = Input::get('take');
-			$result                 = $result->take($take);
+			$take					= Input::get('take');
+			$result					= $result->take($take);
 		}
 
-		$result 					= $result->with(['parentaccount', 'account', 'transaction'])->get();
+		$result 					= $result->with(['transaction', 'details', 'details.account'])->get();
 		
 		return response()->json( JSend::success(['data' => $result->toArray(), 'count' => $count])->asArray())
 				->setCallback($this->request->input('callback'));
@@ -134,12 +136,12 @@ class JournalController extends Controller
 	 * @Post("/")
 	 * @Versions({"v1"})
 	 * @Transaction({
-	 *      @Request({"id":null,"company_id":"integer","transaction_id":"integer","account_id":"integer","parent_account_id":"integer", "description":"text","debit":"integer","credit":integer})
-	 *      @Response(200, body={"status": "success", "data": {"id":null,"company_id":"integer","transaction_id":"integer","account_id":"integer","parent_account_id":"integer", "description":"text","debit":"integer","credit":integer,"parentaccount":{"company_id":"integer","name":"string","type":"string","code":"string"},"account":{"company_id":"integer","name":"string","type":"string","code":"string"},"transaction":{"id":"integer","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}} })
+	 *      @Request({"id":null,"company_id":"integer","transaction_id":"integer","transact_at":"datetime","type":"cash|accrual", "currency":"string","notes":"text","details":{"id":"integer","journal_id":"integer","account_id":"integer","debit":"integer","credit":"integer"}})
+	 *      @Response(200, body={"status": "success", "data": {"id":null,"company_id":"integer","transaction_id":"integer","transact_at":"datetime","type":"cash|accrual", "currency":"string","notes":"text","details":{"id":"integer","journal_id":"integer","account_id":"integer","debit":"integer","credit":"integer","account":{"company_id":"integer","name":"string","type":"string","code":"string"}},"transaction":{"id":"integer","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}} })
 	 *      @Response(422, body={"status": {"error": {"account invalid."}}})
 	 * })
 	 */
-	public function post()
+	public function post($type = 'cash')
 	{
 		$result						= $this->store;
 
@@ -163,13 +165,13 @@ class JournalController extends Controller
 	 * @Versions({"v1"})
 	 * @Transaction({
 	 *      @Request({"id":null}),
-	 *      @Response(200, body={"status": "success", "data": {"id":null,"company_id":"integer","transaction_id":"integer","account_id":"integer","parent_account_id":"integer", "description":"text","debit":"integer","credit":integer,"parentaccount":{"company_id":"integer","name":"string","type":"string","code":"string"},"account":{"company_id":"integer","name":"string","type":"string","code":"string"},"transaction":{"id":"integer","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}} })
+	 *      @Response(200, body={"status": "success", "data": {"id":null,"company_id":"integer","transaction_id":"integer","transact_at":"datetime","type":"cash|accrual", "currency":"string","notes":"text","details":{"id":"integer","journal_id":"integer","account_id":"integer","debit":"integer","credit":"integer","account":{"company_id":"integer","name":"string","type":"string","code":"string"}},"transaction":{"id":"integer","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}} })
 	 *      @Response(422, body={"status": {"error": {"cannot delete."}}})
 	 * })
 	 */
-	public function delete()
+	public function delete($type = 'cash')
 	{
-		$result				= Journal::id(Input::get('id'))->with(['parentaccount', 'account', 'transaction'])->first();
+		$result				= Journal::id(Input::get('id'))->type($type)->with(['transaction', 'details', 'details.account'])->first();
 
 		if($this->delete->delete($result))
 		{

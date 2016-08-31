@@ -6,6 +6,7 @@ use App\CrossServices\ClosedDoorModelObserver;
 
 use App\Entities\TraitLibraries\FieldCompanyTrait;
 use App\Entities\TraitLibraries\FieldTypeTrait;
+use App\Entities\TraitLibraries\SelectReportTrait;
 
 class Account extends BaseModel
 {
@@ -15,6 +16,7 @@ class Account extends BaseModel
 	 */
 	use FieldCompanyTrait;
 	use FieldTypeTrait;
+	use SelectReportTrait;
 
 	/**
 	 * The database table used by the model.

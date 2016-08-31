@@ -107,7 +107,7 @@ class JournalStore implements JournalStoreInterface
 		\DB::commit();
 
 		//3. Return Journal Model Object
-		$pro_journal			= Journal::id($this->pro->journal['id'])->with(['parentaccount', 'account', 'transaction'])->first();
+		$pro_journal			= Journal::id($this->pro->journal['id'])->with(['transaction', 'details', 'details.account'])->first();
 
 		$this->saved_data		= $pro_journal;
 

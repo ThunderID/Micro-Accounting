@@ -51,20 +51,26 @@ $app->delete('/transactions/{type}',
 	]
 );
 
-$app->get('/journals',
+$app->get('/journals/{type}',
 	[
 		'uses'				=> 'JournalController@index'
 	]
 );
 
-$app->post('/journals',
+$app->post('/journals/{type}',
 	[
 		'uses'				=> 'JournalController@post'
 	]
 );
 
-$app->delete('/journals',
+$app->delete('/journals/{type}',
 	[
 		'uses'				=> 'JournalController@delete'
+	]
+);
+
+$app->get('/reports/general/ledger/{mode}',
+	[
+		'uses'				=> 'ReportController@generalledger'
 	]
 );

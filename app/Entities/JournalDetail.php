@@ -2,41 +2,33 @@
 
 namespace App\Entities;
 
-use App\Entities\TraitRelations\BelongsToTransactionTrait;
-use App\Entities\TraitRelations\HasManyJournalDetailsTrait;
+use App\Entities\TraitRelations\BelongsToJournalTrait;
+use App\Entities\TraitRelations\BelongsToAccountTrait;
 
-use App\Entities\TraitLibraries\FieldTypeTrait;
-use App\Entities\TraitLibraries\FieldCompanyTrait;
+use App\CrossServices\ClosedDoorModelObserver;
 
-class Journal extends BaseModel
+class JournalDetail extends BaseModel
 {
 	/**
 	 * Relationship Traits
 	 *
 	 */
-	use BelongsToTransactionTrait;
-	use HasManyJournalDetailsTrait;
-
-	/**
-	 * Libraries Traits for scopes
-	 *
-	 */
-	use FieldTypeTrait;
-	use FieldCompanyTrait;
+	use BelongsToJournalTrait;
+	use BelongsToAccountTrait;
 
 	/**
 	 * The database table used by the model.
 	 *
 	 * @var string
 	 */
-	protected $table				= 'journals';
+	protected $table				= 'journal_details';
 	
 	/**
 	 * Date will be returned as carbon
 	 *
 	 * @var array
 	 */
-	protected $dates				=	['created_at', 'updated_at', 'deleted_at', 'transact_at'];
+	protected $dates				=	['created_at', 'updated_at', 'deleted_at'];
 
 	/**
 	 * The appends attributes from mutator and accessor
@@ -59,12 +51,11 @@ class Journal extends BaseModel
 	 */
 
 	protected $fillable				=	[
-											'company_id'					,
-											'transaction_id'				,
-											'transact_at'					,
-											'type'							,
-											'currency'						,
-											'notes'							,
+											'journal_id'					,
+											'account_id'					,
+											'description'					,
+											'debit'							,
+											'credit'						,
 										];
 
 	/**
@@ -73,10 +64,10 @@ class Journal extends BaseModel
 	 * @var array
 	 */
 	protected $rules				=	[
-											'transaction_id'				=> 'exists:transactions,id',
-											'transact_at'					=> 'required|date_format:"Y-m-d H:i:s"',
-											'type'							=> 'required|in:cash,accrual',
-											'currency'						=> 'max:255',
+											'journal_id'					=> 'exists:journals,id',
+											'account_id'					=> 'exists:accounts,id',
+											'debit'							=> 'numeric',
+											'credit'						=> 'numeric',
 										];
 	
 
@@ -93,5 +84,7 @@ class Journal extends BaseModel
 	public static function boot() 
 	{
         parent::boot();
+     
+        JournalDetail::observe(new ClosedDoorModelObserver());
     }
 }

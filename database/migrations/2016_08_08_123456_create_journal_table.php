@@ -16,16 +16,15 @@ class CreateJournalTable extends Migration
 			$table->increments('id');
 			$table->integer('company_id')->unsigned()->index();
 			$table->integer('transaction_id')->unsigned()->index();
-			$table->integer('parent_account_id')->unsigned()->index();
-			$table->integer('account_id')->unsigned()->index();
-			$table->text('description');
-			$table->double('debit');
-			$table->double('credit');
+			$table->datetime('transact_at');
+			$table->enum('type', ['cash', 'accrual']);
+			$table->string('currency', 255);
+			$table->text('notes');
 			$table->timestamps();
 			$table->softDeletes();
 			
-			$table->index(['deleted_at', 'company_id', 'parent_account_id']);
-			$table->index(['deleted_at', 'company_id', 'account_id']);
+			$table->index(['deleted_at', 'company_id', 'transaction_id']);
+			$table->index(['deleted_at', 'company_id', 'transact_at']);
 		});
 	}
 

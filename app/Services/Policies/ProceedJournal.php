@@ -3,6 +3,7 @@
 namespace App\Services\Policies;
 
 use App\Entities\Journal;
+use App\Entities\JournalDetail;
 
 use Illuminate\Support\MessageBag;
 
@@ -39,13 +40,53 @@ class ProceedJournal implements ProceedjournalInterface
 		}
 
 		$this->journal		= $stored_journal;
+
+		$this->storejournaldetails($stored_journal, $journal['details']);
+	}
+
+	public function storejournaldetails(Journal $journal, array $details)
+	{
+		foreach ($details as $key => $value) 
+		{
+			$journal_detail		= JournalDetail::notid($value['id'])->journalid($journal['id'])->accountid($value['account_id'])->first();
+
+			if($journal_detail)
+			{
+				$journal_detail->fill($value);
+			}
+			else
+			{
+				$journal_detail	= new JournalDetail;
+				$journal_detail->fill($value);
+			}
+
+			$journal_detail->journal_id		= $journal['id'];
+
+			if(!$journal_detail->save())
+			{
+				$this->errors->add('Journal', $journal_detail->getError());
+			}
+		}
 	}
 
 	public function deletejournal(Journal $journal)
 	{
+		$this->deletejournaldetails($journal);
+		
 		if(!$journal->delete())
 		{
 			$this->errors->add('Journal', $journal->getError());
+		}
+	}
+	
+	public function deletejournaldetails(Journal $journal)
+	{
+		foreach ($journal->details as $key => $value) 
+		{
+			if(!$value->delete())
+			{
+				$this->errors->add('Journal', $value->getError());
+			}
 		}
 	}
 }

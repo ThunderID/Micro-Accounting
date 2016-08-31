@@ -46,4 +46,13 @@ trait BelongsToAccountTrait
 	{
 		return $query->where('account_id', $variable);
 	}
+
+	/**
+	 * check if model has Account
+	 *
+	 **/
+	public function scopeAccountType($query, $variable)
+	{
+		return $query->whereHas('account', function($q)use($variable){$q->type($variable);});
+	}
 }

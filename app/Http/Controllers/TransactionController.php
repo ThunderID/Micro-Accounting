@@ -143,21 +143,21 @@ class TransactionController extends Controller
 			}
 		}
 
-		$count                      = count($result->get());
+		$count						= count($result->get());
 
 		if(Input::has('skip'))
 		{
-			$skip                   = Input::get('skip');
-			$result                 = $result->skip($skip);
+			$skip					= Input::get('skip');
+			$result					= $result->skip($skip);
 		}
 
 		if(Input::has('take'))
 		{
-			$take                   = Input::get('take');
-			$result                 = $result->take($take);
+			$take					= Input::get('take');
+			$result					= $result->take($take);
 		}
 
-		$result 					= $result->get();
+		$result 					= $result->with(['details'])->get();
 		
 		return response()->json( JSend::success(['data' => $result->toArray(), 'count' => $count])->asArray())
 				->setCallback($this->request->input('callback'));
@@ -267,7 +267,7 @@ class TransactionController extends Controller
 				break;
 		}
 
-		$result					= Transaction::id(Input::get('id'))->type(strtolower($type))->first();
+		$result					= Transaction::id(Input::get('id'))->type(strtolower($type))->with(['details'])->first();
 
 		if($this->delete->delete($result))
 		{

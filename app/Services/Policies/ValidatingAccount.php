@@ -7,7 +7,7 @@ use App\Contracts\Policies\ValidatingAccountInterface;
 use Illuminate\Support\MessageBag;
 
 use App\Entities\Account;
-use App\Entities\Journal;
+use App\Entities\JournalDetail;
 
 class ValidatingAccount implements ValidatingAccountInterface
 {
@@ -34,14 +34,13 @@ class ValidatingAccount implements ValidatingAccountInterface
 
 	public function validateaccountdelete(Account $account)
 	{
-		$exists_journal_1	= Journal::accountid($account['id'])->first();
-		$exists_journal_2	= Journal::parentaccountid($account['id'])->first();
+		$exists_journal		= JournalDetail::accountid($account['id'])->first();
 
 		if(!$account->count())
 		{
 			$this->errors->add('Account', 'Akun tidak valid');
 		}
-		elseif($exists_journal_1 || $exists_journal_2)
+		elseif($exists_journal)
 		{
 			$this->errors->add('Account', 'Tidak dapat menghapus akun yang digunakan dalam jurnal');
 		}

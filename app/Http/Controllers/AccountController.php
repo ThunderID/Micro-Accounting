@@ -106,18 +106,18 @@ class AccountController extends Controller
 			}
 		}
 
-		$count                      = count($result->get());
+		$count						= count($result->get());
 
 		if(Input::has('skip'))
 		{
-			$skip                   = Input::get('skip');
-			$result                 = $result->skip($skip);
+			$skip					= Input::get('skip');
+			$result					= $result->skip($skip);
 		}
 
 		if(Input::has('take'))
 		{
-			$take                   = Input::get('take');
-			$result                 = $result->take($take);
+			$take					= Input::get('take');
+			$result					= $result->take($take);
 		}
 
 		$result 					= $result->get();
