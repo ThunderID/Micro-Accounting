@@ -115,4 +115,71 @@ class ProceedTransaction implements ProceedTransactionInterface
 		$this->storetransaction($transaction);
 		$this->storetransactiondetails($this->transaction, $transaction['details']);
 	}
+
+	public function deletetransaction(Transaction $transaction)
+	{
+		if(!$transaction->delete())
+		{
+			$this->errors->add('Transaction', $transaction->getError());
+		}
+	}
+
+	public function deletetransactiondetails(Transaction $transaction)
+	{
+		foreach ($transaction->details as $key => $value) 
+		{
+			if(!$value->delete())
+			{
+				$this->errors->add('Transaction', $value->getError());
+			}
+		}
+	}
+
+	public function deletecashnote(Transaction $transaction)
+	{
+		$this->deletetransactiondetails($transaction);
+		$this->deletetransaction($transaction);
+	}
+
+	public function deletecheque(Transaction $transaction)
+	{
+		$this->deletetransactiondetails($transaction);
+		$this->deletetransaction($transaction);
+	}
+
+	public function deletecreditmemo(Transaction $transaction)
+	{
+		$this->deletetransactiondetails($transaction);
+		$this->deletetransaction($transaction);
+	}
+
+	public function deletedebitmemo(Transaction $transaction)
+	{
+		$this->deletetransactiondetails($transaction);
+		$this->deletetransaction($transaction);
+	}
+
+	public function deletegiro(Transaction $transaction)
+	{
+		$this->deletetransactiondetails($transaction);
+		$this->deletetransaction($transaction);
+	}
+
+	public function deleteinvoice(Transaction $transaction)
+	{
+		$this->deletetransactiondetails($transaction);
+		$this->deletetransaction($transaction);
+	}
+
+	public function deletememorial(Transaction $transaction)
+	{
+		$this->deletetransactiondetails($transaction);
+		$this->deletetransaction($transaction);
+	}
+
+	public function deletereceipt(Transaction $transaction)
+	{
+		$this->deletetransactiondetails($transaction);
+		$this->deletetransaction($transaction);
+	}
 }

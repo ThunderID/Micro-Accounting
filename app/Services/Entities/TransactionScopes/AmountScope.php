@@ -27,6 +27,7 @@ class AmountScope implements ScopeInterface
 					sum(IFNULL((SELECT sum((price - discount) * quantity) FROM transaction_details WHERE transaction_details.transaction_id = transactions.id and transaction_details.deleted_at is null),0)
 					) as amount
 				")
+				->groupby('transactions.id')
 			;
 	}
 

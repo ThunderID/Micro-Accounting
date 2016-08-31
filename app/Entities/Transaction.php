@@ -55,7 +55,7 @@ class Transaction extends BaseModel
 	 *
 	 * @var array
 	 */
-	protected $dates				=	['created_at', 'updated_at', 'deleted_at', 'issued_at', 'due_at'];
+	protected $dates				=	['created_at', 'updated_at', 'deleted_at', 'issued_at', 'due_at', 'transact_at'];
 
 	/**
 	 * The attributes that are mass assignable.
@@ -90,7 +90,7 @@ class Transaction extends BaseModel
 											'company_id'					=> 'numeric',
 											'assigned_to'					=> 'numeric',
 											
-											'type'							=> 'in:receipt,cash_note,cheque,invoice,credit_memo,debit_memo,memorial,giro',
+											'type'							=> 'in:cash_note,cheque,credit_memo,debit_memo,giro,invoice,memorial,receipt',
 											'doc_number'					=> 'max:255',
 											'ref_number'					=> 'max:255',
 											

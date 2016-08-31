@@ -38,7 +38,7 @@ class JournalController extends Controller
 	 * @Versions({"v1"})
 	 * @Transaction({
 	 *      @Request({"type":"","search":[{"id":"integer", "transactionid":"integer","parentaccountid":"integer","accountid":"integer"}],"sort":[{"newest":"asc","transaction":"desc","debit":"desc", "credit":"asc"}], "take":"integer", "skip":"integer"}),
-	 *      @Response(200, body={"status": "success", "data": {"data":[{"id":null,"company_id":"integer","transaction_id":"integer","account_id":"integer","parent_account_id":"integer", "description":"text","debit":"integer","credit":integer,"parentaccount":{"company_id":"integer","name":"string","type":"string","code":"string"},"account":{"company_id":"integer","name":"string","type":"string","code":"string"},"transaction":{"issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}}],"count":"integer"} })
+	 *      @Response(200, body={"status": "success", "data": {"data":[{"id":null,"company_id":"integer","transaction_id":"integer","account_id":"integer","parent_account_id":"integer", "description":"text","debit":"integer","credit":integer,"parentaccount":{"company_id":"integer","name":"string","type":"string","code":"string"},"account":{"company_id":"integer","name":"string","type":"string","code":"string"},"transaction":{"id":"integer","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}}],"count":"integer"} })
 	 * })
 	 */
 	public function index()
@@ -135,7 +135,7 @@ class JournalController extends Controller
 	 * @Versions({"v1"})
 	 * @Transaction({
 	 *      @Request({"id":null,"company_id":"integer","transaction_id":"integer","account_id":"integer","parent_account_id":"integer", "description":"text","debit":"integer","credit":integer})
-	 *      @Response(200, body={"status": "success", "data": {"id":null,"company_id":"integer","transaction_id":"integer","account_id":"integer","parent_account_id":"integer", "description":"text","debit":"integer","credit":integer,"parentaccount":{"company_id":"integer","name":"string","type":"string","code":"string"},"account":{"company_id":"integer","name":"string","type":"string","code":"string"},"transaction":{"issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}} })
+	 *      @Response(200, body={"status": "success", "data": {"id":null,"company_id":"integer","transaction_id":"integer","account_id":"integer","parent_account_id":"integer", "description":"text","debit":"integer","credit":integer,"parentaccount":{"company_id":"integer","name":"string","type":"string","code":"string"},"account":{"company_id":"integer","name":"string","type":"string","code":"string"},"transaction":{"id":"integer","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}} })
 	 *      @Response(422, body={"status": {"error": {"account invalid."}}})
 	 * })
 	 */
@@ -163,7 +163,7 @@ class JournalController extends Controller
 	 * @Versions({"v1"})
 	 * @Transaction({
 	 *      @Request({"id":null}),
-	 *      @Response(200, body={"status": "success", "data": {"id":null,"company_id":"integer","transaction_id":"integer","account_id":"integer","parent_account_id":"integer", "description":"text","debit":"integer","credit":integer,"parentaccount":{"company_id":"integer","name":"string","type":"string","code":"string"},"account":{"company_id":"integer","name":"string","type":"string","code":"string"},"transaction":{"issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}} })
+	 *      @Response(200, body={"status": "success", "data": {"id":null,"company_id":"integer","transaction_id":"integer","account_id":"integer","parent_account_id":"integer", "description":"text","debit":"integer","credit":integer,"parentaccount":{"company_id":"integer","name":"string","type":"string","code":"string"},"account":{"company_id":"integer","name":"string","type":"string","code":"string"},"transaction":{"id":"integer","amount":"integer","issued_by":"integer","company_id":"integer","assigned_to":"integer","type":"receipt|cash_note|cheque|invoice|credit_memo|debit_memo|memorial|giro","doc_number":"string","ref_number":"string","issued_at":"datetime","transact_at":"datetime","due_at":"datetime"}} })
 	 *      @Response(422, body={"status": {"error": {"cannot delete."}}})
 	 * })
 	 */
