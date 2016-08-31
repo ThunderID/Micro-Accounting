@@ -11,56 +11,37 @@ use Illuminate\Http\Request;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
-use App\Services\CashNoteStore;
-use App\Services\ChequeStore;
-use App\Services\CreditMemoStore;
-use App\Services\DebitMemoStore;
-use App\Services\GiroStore;
-use App\Services\InvoiceStore;
-use App\Services\MemorialStore;
-use App\Services\ReceiptStore;
-use App\Entities\Transaction;
+use App\Services\JournalStore;
+use App\Entities\Journal;
 
 /**
- * Transaction resource representation.
+ * Journal resource representation.
  *
- * @Resource("Transactions", uri="/Transactions")
+ * @Resource("Journals", uri="/Journals")
  */
-class TransactionController extends Controller
+class JournalController extends Controller
 {
-	public function __construct(Request $request, CashNoteStore $cashnotestore, ChequeStore $chequestore, CreditMemoStore $creditmemostore, DebitMemoStore $debitmemostore, GiroStore $girostore, InvoiceStore $invoicestore, MemorialStore $memorialstore, ReceiptStore $receiptstore)
+	public function __construct(Request $request, JournalStore $store)
 	{
 		$this->request 				= $request;
-		$this->cashnotestore		= $cashnotestore;
-		$this->chequestore			= $chequestore;
-		$this->creditmemostore		= $creditmemostore;
-		$this->debitmemostore		= $debitmemostore;
-		$this->girostore			= $girostore;
-		$this->invoicestore			= $invoicestore;
-		$this->memorialstore		= $memorialstore;
-		$this->receiptstore			= $receiptstore;
+		$this->store				= $store;
 	}
 
 	/**
-	 * Show all Transactions
+	 * Show all Journals
 	 *
-	 * Get a JSON representation of all the stored Transactions.
+	 * Get a JSON representation of all the stored Journals.
 	 *
-	 * @Get("/Transactions")
+	 * @Get("/Journals")
 	 * @Versions({"v1"})
 	 * @Transaction({
 	 *      @Request({"type":"","search":[{"name":string, "companyid":"integer","code":"string","type":"asset|liability|equity|income|expense"}],"sort":[{"newest":"asc","company":"desc","type":"desc", "code":"asc"}], "take":"integer", "skip":"integer"}),
 	 *      @Response(200, body={"status": "success", "data": {"data":[{"id":null,"company_id":"integer","name":"string","code":"string","type":"string"}],"count":"integer"} })
 	 * })
 	 */
-	public function index($type = 'all')
+	public function index()
 	{
-		$result						= new Transaction;
-		
-		if(!str_is('all', $type))
-		{
-			$result					= $result->type($type);
-		}
+		$result						= new Journal;
 
 		if(Input::has('search'))
 		{
@@ -73,17 +54,14 @@ class TransactionController extends Controller
 					case 'id':
 						$result		= $result->id($value);
 						break;
-					case 'name':
-						$result		= $result->name($value);
+					case 'transactionid':
+						$result		= $result->transactionid($value);
 						break;
-					case 'companyid':
-						$result		= $result->companyid($value);
+					case 'parentaccountid':
+						$result		= $result->parentaccountid($value);
 						break;
-					case 'code':
-						$result		= $result->code($value);
-						break;
-					case 'type':
-						$result		= $result->type($value);
+					case 'accountid':
+						$result		= $result->accountid($value);
 						break;
 					default:
 						# code...
@@ -105,16 +83,16 @@ class TransactionController extends Controller
 				switch (strtolower($key)) 
 				{
 					case 'newest':
-						$result		= $result->orderby('transact_at', $value);
+						$result		= $result->orderby('created_at', $value);
 						break;
-					case 'company':
-						$result		= $result->orderby('company_id', $value);
+					case 'transaction':
+						$result		= $result->orderby('transaction_id', $value);
 						break;
-					case 'type':
-						$result		= $result->orderby('type', $value);
+					case 'debit':
+						$result		= $result->orderby('debit', $value);
 						break;
-					case 'code':
-						$result		= $result->orderby('code', $value);
+					case 'credit':
+						$result		= $result->orderby('credit', $value);
 						break;
 					default:
 						# code...
@@ -137,16 +115,16 @@ class TransactionController extends Controller
 			$result                 = $result->take($take);
 		}
 
-		$result 					= $result->get();
+		$result 					= $result->with(['parentaccount', 'account'])->get();
 		
 		return response()->json( JSend::success(['data' => $result->toArray(), 'count' => $count])->asArray())
 				->setCallback($this->request->input('callback'));
 	}
 
 	/**
-	 * Store Transaction
+	 * Store Journal
 	 *
-	 * Store a new Transaction with a goods costs and service costs.
+	 * Store a new Journal with a goods costs and service costs.
 	 *
 	 * @Post("/")
 	 * @Versions({"v1"})
@@ -156,39 +134,9 @@ class TransactionController extends Controller
 	 *      @Response(422, body={"status": {"error": {"code must be unique."}}})
 	 * })
 	 */
-	public function post($type = 'all')
+	public function post()
 	{
-		switch (strtolower($type)) 
-		{
-			case 'cash_note':
-				$result				= $this->cashnotestore;
-				break;
-			case 'cheque':
-				$result				= $this->chequestore;
-				break;
-			case 'credit_memo':
-				$result				= $this->creditmemostore;
-				break;
-			case 'debit_memo':
-				$result				= $this->debitmemostore;
-				break;
-			case 'giro':
-				$result				= $this->girostore;
-				break;
-			case 'invoice':
-				$result				= $this->invoicestore;
-				break;
-			case 'memorial':
-				$result				= $this->memorialstore;
-				break;
-			case 'receipt':
-				$result				= $this->receiptstore;
-				break;
-			default:
-				return response()->json( JSend::error(['Tipe akun tidak valid'])->asArray());
-				break;
-		}
-		
+		$result						= $this->store;
 
 		$result->fill(Input::all());
 
@@ -202,29 +150,29 @@ class TransactionController extends Controller
 	}
 
 	/**
-	 * Delete Transaction
+	 * Delete Journal
 	 *
-	 * Delete a new Transaction with a goods costs and service costs.
+	 * Delete a new Journal with a goods costs and service costs.
 	 *
 	 * @Post("/")
 	 * @Versions({"v1"})
 	 * @Transaction({
 	 *      @Request({"id":null}),
-	 *      @Response(200, body={"status": "success", "data": {"id":null,"ref_number":"string","issued_by":"integer","company_id":"integer","customer_id":"integer","issued_at":"datetime","due_at":"datetime","goods":[{"id":null,"Transaction_id":"integer","product_id":"integer","quantity":"integer","price":"double","discount":"double"}],"services":[{"id":null,"Transaction_id":"integer","service_id":"integer","price":"double","discount":"double"}]}}),
+	 *      @Response(200, body={"status": "success", "data": {"id":null,"ref_number":"string","issued_by":"integer","company_id":"integer","customer_id":"integer","issued_at":"datetime","due_at":"datetime","goods":[{"id":null,"Journal_id":"integer","product_id":"integer","quantity":"integer","price":"double","discount":"double"}],"services":[{"id":null,"Journal_id":"integer","service_id":"integer","price":"double","discount":"double"}]}}),
 	 *      @Response(422, body={"status": {"error": {"cannot delete."}}})
 	 * })
-	 * Event created : tlab.Transaction.deleted
+	 * Event created : tlab.Journal.deleted
 	 */
 	public function delete()
 	{
-		$result				= Transaction::id(Input::get('id'))->first();
+		$result				= Journal::id(Input::get('id'))->first();
 
 		if($this->deleted->delete($result))
 		{
 			$connection 	= new AMQPStreamConnection('localhost', 5672, 'guest', 'guest');
 			$channel 		= $connection->channel();
 			
-			$routing_key 	= 'tlab.Transaction.deleted';
+			$routing_key 	= 'tlab.journal.deleted';
 
 			$channel->exchange_declare('topic_logs', 'topic', false, false, false);
 

@@ -51,6 +51,9 @@ class AccountController extends Controller
 			{
 				switch (strtolower($key)) 
 				{
+					case 'id':
+						$result		= $result->id($value);
+						break;
 					case 'name':
 						$result		= $result->name($value);
 						break;

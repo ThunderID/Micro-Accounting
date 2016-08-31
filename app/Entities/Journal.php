@@ -4,6 +4,7 @@ namespace App\Entities;
 
 use App\Entities\TraitRelations\BelongsToAccountTrait;
 use App\Entities\TraitRelations\BelongsToTransactionTrait;
+use App\Entities\TraitRelations\BelongsToParentAccountTrait;
 
 class Journal extends BaseModel
 {
@@ -13,6 +14,7 @@ class Journal extends BaseModel
 	 */
 	use BelongsToTransactionTrait;
 	use BelongsToAccountTrait;
+	use BelongsToParentAccountTrait;
 
 	/**
 	 * The database table used by the model.
